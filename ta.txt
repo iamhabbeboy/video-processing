@@ -1,0 +1,74 @@
+package main
+
+import (
+	"fmt"
+	"os/exec"
+	"strconv"
+	"strings"
+	"sync"
+)
+
+// frontend
+// upload to the folder
+// streaming service
+func main() {
+	video := "video/lengthy.mov"
+	cmd := exec.Command("ffmpeg", "-i", video)
+	stdoutput, _ := cmd.CombinedOutput()
+	output := string(stdoutput)
+	durationIndex := strings.Index(output, "Duration:")
+	if durationIndex == -1 {
+		fmt.Println("Duration not found")
+		return
+	}
+	output = output[durationIndex:]
+	durationEndIndex := strings.Index(output, ",")
+	if durationEndIndex == -1 {
+		fmt.Println("Invalid duration format")
+		return
+	}
+
+	duration := output[len("Duration:"):durationEndIndex]
+	split := strings.Split(duration, ":")
+	if len(split) != 3 {
+		fmt.Println("Invalid duration format")
+		return
+	}
+	hours, _ := strconv.Atoi(split[0])
+	minutes, _ := strconv.Atoi(split[1])
+	seconds, _ := strconv.Atoi(split[2])
+	duration = strconv.Itoa(hours*60*60 + minutes*60 + seconds)
+	fmt.Println(duration)
+
+	var wg sync.WaitGroup
+
+	total := 15 / 5
+	for i := 0; i < total; i++ {
+		wg.Add(1)
+		fmt.Println("Processing video: ", i)
+		go processVideo(video, i, &wg)
+	}
+	wg.Wait()
+	// get duration
+	// divide duration by 5mins
+	// create multiple of 5mins video
+}
+
+func processVideo(video string, i int, wg *sync.WaitGroup) {
+	defer wg.Done()
+	// filename := "video/lengtghy-" + strconv.Itoa(i) + ".mp4"
+	dur := i * 5
+	str := "05"
+	start := "00"
+	if dur > 5 {
+		str = strconv.Itoa(dur)
+		start = strconv.Itoa(dur - 5)
+	}
+	fmt.Println(str)
+	cmd1 := exec.Command("ffmpeg", "-i", video, "-ss", "00:"+start+":00", "-t", "00:"+str+":00", "-c", "copy", "filename-"+strconv.Itoa(i)+".mp4")
+	stroutput, _ := cmd1.CombinedOutput()
+	output := string(stroutput)
+	fmt.Println("=====")
+	fmt.Println(output)
+	fmt.Println("Processing video: ", i)
+}

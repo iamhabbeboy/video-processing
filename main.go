@@ -4,18 +4,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 )
-
-// type Template struct {
-// 	templates *template.Template
-// }
-
-// func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-// 	return t.templates.ExecuteTemplate(w, name, data)
-// }
 
 func main() {
 	// HandleLowerBandwidth()
@@ -60,30 +51,4 @@ func main() {
 	})
 
 	e.Logger.Fatal(e.Start(":1323"))
-}
-
-func parseRangeHeader(rangeHeader string, fileSize int64) (int64, int64, error) {
-	// Parse the range header value
-	// Example: bytes=500-999
-	startEnd := rangeHeader[len("bytes="):]
-	startEndSplit := strings.Split(startEnd, "-")
-	startStr := startEndSplit[0]
-	endStr := startEndSplit[1]
-
-	// Parse the start and end positions
-	start, err := strconv.ParseInt(startStr, 10, 64)
-	if err != nil {
-		return 0, 0, err
-	}
-	end, err := strconv.ParseInt(endStr, 10, 64)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	// Adjust the end position if it exceeds the file size
-	if end >= fileSize {
-		end = fileSize - 1
-	}
-
-	return start, end, nil
 }

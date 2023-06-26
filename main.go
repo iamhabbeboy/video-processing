@@ -1,8 +1,11 @@
 package main
 
 import (
+	"io"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -48,6 +51,40 @@ func main() {
 		http.ServeContent(c.Response().Writer, c.Request(), "video.mp4", fi.ModTime(), file)
 
 		return nil
+	})
+
+	e.GET("/segment-list", func(c echo.Context) error {
+		f := "media/output/video.m3u8"
+		absolutePath := filepath.Join(".", f)
+		// application/vnd.apple.mpegurl
+		c.Response().Header().Set("Accept-Ranges", "bytes")
+		c.Response().Header().Set("Content-Type", "application/vnd.apple.mpegurlapplication/vnd.apple.mpegurl")
+		return c.String(http.StatusOK, absolutePath)
+	})
+	// ffmpeg -i input.mp4 -c:v copy -c:a copy -hls_time 10 -hls_list_size 0 output.m3u8
+	e.GET("/stream/:name", func(c echo.Context) error {
+		segmentName := c.Param("name")
+		segmentPath := filepath.Join("media/output/", segmentName)
+
+		// Open the video segment file
+		file, err := os.Open(segmentPath)
+		if err != nil {
+			log.Println("Error opening segment file:", err)
+			return c.String(http.StatusInternalServerError, "Internal Server Error")
+		}
+		defer file.Close()
+		fi, _ := file.Stat()
+		// Set the response headers for the video segment
+		c.Response().Header().Set("Content-Type", "video/MP2T")
+		c.Response().Header().Set("Content-Length", strconv.FormatInt(fi.Size(), 10))
+		c.Response().WriteHeader(http.StatusOK)
+
+		// Stream the video segment to the response
+		_, err = io.Copy(c.Response().Writer, file)
+		if err != nil {
+			log.Println("Error streaming video segment:", err)
+		}
+		return c.File(segmentPath)
 	})
 
 	e.Logger.Fatal(e.Start(":1323"))

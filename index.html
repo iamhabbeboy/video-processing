@@ -1,24 +1,57 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-<link rel="stylesheet" href="//assets.ziggeo.com/v2-stable/ziggeo.css" />
-<script src="//assets.ziggeo.com/v2-stable/ziggeo.js"></script>
-<script>
-  var ziggeoApp = new ZiggeoApi.V2.Application({
-    token: "01042db516c6844e1f390be36316215d",
-  });
-</script>
-</head>
-</head>
-<body>
-<h1>Hello world, floatcam  </h1>
+  <head>
+    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+    <script>
+      /* Array of video sources
+      var videoSources = [
+        "media/output/output_000.mp4",
+        "media/output/output_001.mp4",
+        "media/output/output_002.mp4",
+      ];
 
-<ziggeorecorder
-  ziggeo-timelimit=15
-  ziggeo-width=320
-  ziggeo-height=240
-  ziggeo-theme='modern'
-  id='myRecorder'
-></ziggeorecorder>
-</body>
+      // Function to create video elements and play videos
+      function playVideos() {
+        videoSources.forEach(function (source, index) {
+          var videoElement = document.getElementById("video" + (index + 1));
+          videoElement.src = source;
+          videoElement.play();
+          console.log(videoElement);
+        });
+      }
+
+      // Call the function to play videos
+      window.addEventListener("DOMContentLoaded", (event) => {
+         playVideos();
+      });*/
+    </script>
+  </head>
+  <body>
+    <h1>Playing video here</h1>
+    <!-- <video src="/output_000.mp4" width="500" height="300" controls></video> -->
+    <video
+      id="my-video"
+      class="video-js"
+      controls
+      preload="auto"
+      width="640"
+      height="364"
+      poster="https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1674&q=80"
+      data-setup="{}"
+    >
+       <source src="http://localhost:1323/video-chunk" type="video/mp4" /> 
+     <!-- <source id="video1" type="video/mp4" src="http://localhost:9001/media/output/output_000.mp4" /> -->
+      <source id="video2" type="video/mp4" />
+      <!-- <source id="video3" type="video/mp4" /> 
+       <source src="MY_VIDEO.webm" type="video/webm" /> -->
+      <p class="vjs-no-js">
+        To view this video please enable JavaScript, and consider upgrading to a
+        web browser that
+        <a href="https://videojs.com/html5-video-support/" target="_blank"
+          >supports HTML5 video</a
+        >
+      </p>
+    </video>
+    <script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
+  </body>
 </html>

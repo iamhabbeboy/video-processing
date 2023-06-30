@@ -1,26 +1,28 @@
 package main
 
 import (
+	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 func main() {
 	// HandleLowerBandwidth()
 	e := echo.New()
 
-	// t := &Template{
-	// 	templates: template.Must(template.ParseGlob("public/views/*.html")),
-	// }
-	// e.Static("/", "public/assets")
-	e.File("/", "media/output")
-	// e.Renderer = t
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"*"},
+		AllowCredentials: true,
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 	e.GET("/", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "index.html", map[string]interface{}{
 			"name": "Dolly!",
@@ -53,15 +55,27 @@ func main() {
 		return nil
 	})
 
-	e.GET("/segment-list", func(c echo.Context) error {
+	e.GET("/segment", func(c echo.Context) error {
 		f := "media/output/video.m3u8"
-		absolutePath := filepath.Join(".", f)
-		// application/vnd.apple.mpegurl
-		c.Response().Header().Set("Accept-Ranges", "bytes")
-		c.Response().Header().Set("Content-Type", "application/vnd.apple.mpegurlapplication/vnd.apple.mpegurl")
-		return c.String(http.StatusOK, absolutePath)
+		// Read the M3U8 playlist file
+		content, err := ioutil.ReadFile(f)
+		if err != nil {
+			return err
+		}
+		c.Response().Header().Set("Content-Type", "application/vnd.apple.mpegurl")
+		return c.String(http.StatusOK, string(content))
 	})
 	// ffmpeg -i input.mp4 -c:v copy -c:a copy -hls_time 10 -hls_list_size 0 output.m3u8
+	e.GET("/:name", func(c echo.Context) error {
+		segmentName := c.Param("name")
+		// segmentPath := filepath.Join("media/output/", segmentName)
+		absolutePath, err := filepath.Abs(fmt.Sprintf("media/output/%s", segmentName))
+		if err != nil {
+			return c.String(http.StatusBadGateway, err.Error())
+		}
+		return c.File(absolutePath)
+	})
+
 	e.GET("/stream/:name", func(c echo.Context) error {
 		segmentName := c.Param("name")
 		segmentPath := filepath.Join("media/output/", segmentName)
